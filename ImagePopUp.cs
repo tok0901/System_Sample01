@@ -1,48 +1,29 @@
-namespace System_Sample01;
-using System.ComponentModel;
-using System.Drawing;
-using System.Windows.Forms;
+namespace System_Sample02;
 
 public class ImagePopUp : ToolTip
 {
-
     public Image Image;
-    public int resizeWidth = 500;
-    public int resizeHeight = 600;
-    public ImagePopUp()
+    public int resizeWidth;
+    public int resizeHeight;
+
+    public ImagePopUp(int Width, int Height)
     {
         this.OwnerDraw = true;
+        this.resizeWidth = Width;
+        this.resizeHeight = Height;
         this.InitialDelay = 1;
-        this.AutoPopDelay = int.MaxValue;
-        this.Popup+= OnPopUpImage;
-        this.Draw += OnDrawImage;
-        Console.WriteLine("Constracter");
-       
+
+        this.Draw += new DrawToolTipEventHandler(OnDrawImage);
+        this.Popup += new PopupEventHandler(OnPopUp);
     }
 
-    public void OnDrawImage(object? sendar,DrawToolTipEventArgs e )
+    public void OnDrawImage(object? sendar, DrawToolTipEventArgs e)
     {
-
-        Size reSize = new Size(resizeWidth,resizeHeight);
-        Point location = new Point(0,0);
-        Rectangle rectangle = new Rectangle(location,reSize);
-
-        //リサイズのための描画オプション設定
-        e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-
-        Console.WriteLine($"{this.Image}");
-
-        e.Graphics.DrawImage(this.Image, rectangle);
-
-        Console.WriteLine($"X:{resizeWidth},Y:{resizeHeight}");
-
+        e.Graphics.DrawImage(this.Image, new Rectangle(new Point(0, 0), new Size(resizeWidth, resizeHeight)));
     }
 
-    public void OnPopUpImage(object? sendar,PopupEventArgs e)
+    public void OnPopUp(object? sendar, PopupEventArgs e)
     {
-        //e.ToolTipSize = new Size(resizeWidth, resizeHeight);
-        Console.WriteLine("success_ImagePopUp");
+        e.ToolTipSize = new Size(resizeWidth, resizeHeight);
     }
-
 }
-
