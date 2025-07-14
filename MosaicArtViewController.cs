@@ -1,37 +1,22 @@
-namespace System_Sample01;
+namespace System_Sample02;
 
 public class MosaicArtViewController
 {
-    private string samplePath = @"c:\Users\toshi\Downloads\20250401平野稔喜.jpg";
-    private MosaicArtView mosaicArtView;
-    public MosaicArtViewController(MosaicArtView mosaicArtView)
+    MosaicArtView view;
+    private string samplePath =  @"C:\Users\12811104\Documents\SystemMosaicArtPictureViewr\Sample_System01\Template\sample2.jpg";
+    private string componentPath = @"C:\Users\12811104\Documents\SystemMosaicArtPictureViewr\Sample_System01\Template\sample1.jpg";
+
+    public MosaicArtViewController(Form form,MosaicArtView mosaicArtView)
     {
-        this.mosaicArtView = mosaicArtView;
-        mosaicArtView.PopUpDraw += SetPopUpImage;
-        mosaicArtView.MouseEntered += DisplayPopUpImage;
-        mosaicArtView.MouseLeaved += RemovePopUpImage;
+        this.view = mosaicArtView;
+        view.form = form;
+        view.ToolTipPopUp += SetImage;
+        view.SetImage(Image.FromFile(samplePath));
+        view.SetPanel(10);
     }
-    public void Display()
+
+    private void SetImage(object? sendar, PopupEventArgs e)
     {
-        mosaicArtView.SetPanel(25);
+        view.SetPopUpImage( Image.FromFile(componentPath));
     }
-
-    private void SetPopUpImage(object? sendar, PopupEventArgs e)
-    {
-        mosaicArtView.SetPopUpImage(Image.FromFile(samplePath));
-        Size reSize = new Size(((ImagePopUp)sendar).resizeWidth, ((ImagePopUp)sendar).resizeHeight);
-        e.ToolTipSize = reSize;
-        Console.WriteLine("successController");
-    }
-
-    private void DisplayPopUpImage(object? sendar,EventArgs e)
-    {
-
-    }
-
-    private void RemovePopUpImage(object? sendar,EventArgs e){
-
-    }
-    
-
 }
