@@ -1,115 +1,79 @@
-namespace System_Sample01;
+namespace System_Sample02;
 
 public class MosaicArtView
 {
-    private Form form;
+    public Form form;
     private Image image;
-    private Image popUpImage;
-    private Size componentSize = new Size(60,40);
+    private ImagePopUp imagePopUp;
+    Size componentSize = new Size(60, 40);
+    public event PopupEventHandler ToolTipPopUp;
     public event EventHandler PanelClicked;
-    public event PopupEventHandler PopUpDraw;
-    public event EventHandler MouseEntered;
-    public event EventHandler MouseLeaved;
-    private string samplePath = @"c:\Users\toshi\Downloads\20250401平野稔喜.jpg";
 
-
-    public MosaicArtView(Form form)
-    { 
-        this.form = form;
-
-    }
 
     public void SetImage(Image image)
     {
         this.image = image;
     }
+
     public void SetPanel(int resolution)
     {
-
-        //mainPanel情報定義
-        Panel mainPanel = new Panel();
-        mainPanel.Size = new Size(componentSize.Width*resolution,componentSize.Height*resolution);
-        //mainPanel.Dock = DockStyle.Fill;
-
-        this.form.Controls.Add(mainPanel);
-        
-        PictureBox pictureBox = new PictureBox();
-        pictureBox.Image = Image.FromFile(samplePath);
-        pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
-        pictureBox.Dock = DockStyle.Fill;
-
-        mainPanel.Controls.Add(pictureBox);
-
         //ポップアップ情報定義
-        ImagePopUp imagePopUp = new ImagePopUp();
-        imagePopUp.Image = this.popUpImage;
-        imagePopUp.Tag = resolution;
-        imagePopUp.Popup += OnPopUpDraw;
+        imagePopUp = new ImagePopUp(400, 300);
+        imagePopUp.OwnerDraw = true;
+        imagePopUp.Popup += OnToolTipPopUp;
 
+        //モザイクアート画像パネル情報定義
+        Panel mainPanel = new Panel();
+        mainPanel.Size = new Size(resolution * componentSize.Width, resolution * componentSize.Height);
+        mainPanel.Location = new Point((this.form.ClientSize.Width - mainPanel.Width) / 2, (this.form.ClientSize.Height - mainPanel.Height) / 2);
+        mainPanel.BackgroundImage = this.image;
+        mainPanel.BackgroundImageLayout = ImageLayout.Stretch;
+
+        //モザイクアート構成画像パネル設定処理
         for (int resolution_X = 0; resolution_X < resolution; resolution_X++)
         {
             for (int resolution_Y = 0; resolution_Y < resolution; resolution_Y++)
             {
 
-                //subPanel情報定義
-                TransparentPanel subPanel = new TransparentPanel();
-                Rectangle rectangle = new Rectangle(new Point(resolution_X * 60, resolution_Y * 40),componentSize);
-                subPanel.Bounds = rectangle;
-                subPanel.BringToFront();
-                // subPanel.Size = componentSize;
-                // subPanel.Location = new Point(resolution_X * 60, resolution_Y * 40);
-                //subPanel.BackColor = Color.Transparent;
-                subPanel.BorderStyle = BorderStyle.FixedSingle;
-                subPanel.Click += PanelClicked;
-                subPanel.MouseEnter += OnMouseEntered;
-                subPanel.MouseLeave += OnMouseLeaved;
+                //モザイクアート構成画像パネル情報定義
+                Panel panel = new Panel()
+                {
+                    Size = this.componentSize,
+                    Location = new Point(resolution_X * componentSize.Width, resolution_Y * componentSize.Height)
+                };
+                panel.BackColor = Color.Transparent;
+                panel.BorderStyle = BorderStyle.FixedSingle;
+                panel.Click += OnPanelClicked;
 
+                //モザイクアート構成画像パネルのポップアップ情報設定
+                imagePopUp.SetToolTip(panel, $"{resolution * resolution_X + resolution * resolution_Y}");
 
-                // //ポップアップ情報定義
-                // ImagePopUp imagePopUp = new ImagePopUp();
-                // imagePopUp.Image = this.popUpImage;
-                // imagePopUp.Tag = resolution * resolution_Y + resolution_X;
-                // imagePopUp.Popup += OnPopUpDraw;
+                //モザイクアート画像パネルへモザイクアート構成画像パネル設定
+                mainPanel.Controls.Add(panel);
 
-
-                //Panelのポップアップ情報設定
-                imagePopUp.SetToolTip(subPanel, $"{imagePopUp.Tag}");
-
-                //FormのPanel設定
-                mainPanel.Controls.Add(subPanel);
-                //this.Dock = DockStyle.Fill;
             }
         }
 
-       
-
-        
-
+        //画面へモザイクアート画像パネル設定
+        this.form.Controls.Add(mainPanel);
     }
-    private void OnPanelClicked(object? sender, EventArgs e)
-    {
-        PanelClicked(sender, e);
-    }
-    
+
     public void SetPopUpImage(Image popUpImage)
     {
-        this.popUpImage = popUpImage;
+        this.imagePopUp.Image = popUpImage;
     }
 
-    public void OnPopUpDraw(object? sendar, PopupEventArgs e)
+    private void OnToolTipPopUp(object? sendar, PopupEventArgs e)
     {
-        PopUpDraw(sendar, e);
+        ToolTipPopUp(sendar, e);
     }
 
-    public void OnMouseEntered(object? sendar,EventArgs e)
+    private void OnPanelClicked(object? sendar, EventArgs e)
     {
-        MouseEntered(sendar,e);
+        PanelClicked(sendar, e);
     }
+    
 
-    public void OnMouseLeaved(object? sendar,EventArgs e)
-    {
-        MouseLeaved(sendar,e);
-    }
 
-   
 }
+
