@@ -1,1 +1,47 @@
+/// <summary>Lab → RGB (sRGB) 変換</summary>
+    public static Color LabToRgb(LabColor lab)
+    {
+        // 1) Lab -> XYZ
+        const double Xn = 95.047;
+        const double Yn = 100.000;
+        const double Zn = 108.883;
+        // Labから正規化値fX,fY,fZを計算
+        double fy = (lab.L + 16.0) / 116.0;
+        double fx = lab.A / 500.0 + fy;
+        double fz = fy - lab.B / 200.0;
+        // f^{-1}(t) の適用
+        double fx3 = Math.Pow(fx, 3.0);
+        double fz3 = Math.Pow(fz, 3.0);
+        double X = (fx3 > 0.008856) ? fx3 : ((fx - 16.0/116.0) / 7.787);
+        double Y = (lab.L > 7.99959)  // L=8未満の場合の補正: 実質的にはLab L=0でもY=0にしたい
+                 ? Math.Pow(fy, 3.0) 
+                 : (lab.L / 903.3);   // 0.008856 = 216/24389, 903.3 = 24389/27
+        double Z = (fz3 > 0.008856) ? fz3 : ((fz - 16.0/116.0) / 7.787);
+        // 基準白を掛けて実際のXYZ値に
+        X *= Xn;
+        Y *= Yn;
+        Z *= Zn;
 
+        // 2) XYZ -> 線形RGB (行列の逆を適用)
+        double rLin =  3.240625*X/100.0 + -1.537208*Y/100.0 + -0.498629*Z/100.0;
+        double gLin = -0.968931*X/100.0 +  1.875756*Y/100.0 +  0.041518*Z/100.0;
+        double bLin =  0.055710*X/100.0 + -0.204021*Y/100.0 +  1.056996*Z/100.0;
+        // XYZ値は現在0〜100スケールなので、先に/100してから係数を掛けることで 
+        // rLin,gLin,bLin を0〜1の範囲に正規化（Y=100だったものを1.0に戻す）
+
+        // 3) 線形RGB -> sRGB (ガンマ補正適用)
+        // クリッピング（範囲外が出る可能性があるため0〜1に収める）
+        rLin = (rLin < 0) ? 0 : (rLin > 1 ? 1 : rLin);
+        gLin = (gLin < 0) ? 0 : (gLin > 1 ? 1 : gLin);
+        bLin = (bLin < 0) ? 0 : (bLin > 1 ? 1 : bLin);
+        // ガンマ補正
+        double r = (rLin <= 0.0031308) ? rLin * 12.92 : 1.055 * Math.Pow(rLin, 1.0/2.4) - 0.055;
+        double g = (gLin <= 0.0031308) ? gLin * 12.92 : 1.055 * Math.Pow(gLin, 1.0/2.4) - 0.055;
+        double b = (bLin <= 0.0031308) ? bLin * 12.92 : 1.055 * Math.Pow(bLin, 1.0/2.4) - 0.055;
+        // 0〜255にスケーリングしてColor構造体を生成
+        byte R = (byte)Math.Round(r * 255.0);
+        byte G = (byte)Math.Round(g * 255.0);
+        byte B = (byte)Math.Round(b * 255.0);
+        return Color.FromArgb(R, G, B);
+    }
+}
